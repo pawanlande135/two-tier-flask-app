@@ -1,3 +1,4 @@
+
 version: "3.8"
 
 services:
@@ -5,23 +6,21 @@ services:
     image: mysql:5.7
     container_name: mysql
     environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devops
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: tws_db
-    volumes: 
+    volumes:
       - ./mysql-data:/var/lib/mysql
+      - ./message.sql:/docker-entrypoint-initdb.d/message.sql  
     networks:
-      - twotiernet
-    ports:
-      - "3306:3306"
+      - twotier
     healthcheck:
-      test: ["CMD","mysqladmin","-h","localhost","-uroot","-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 60s
-
 
   flask-app:
     build:
@@ -33,14 +32,12 @@ services:
       MYSQL_HOST: mysql
       MYSQL_USER: root
       MYSQL_PASSWORD: root
-      MYSQL_DATABASE: tws_db
+      MYSQL_DB: devops
     depends_on:
       - mysql
     networks:
-      - twotiernet
+      - twotier
     restart: always
 
 networks:
-  twotiernet:
-volumes: 
-  mysql-data:
+  twotier:
