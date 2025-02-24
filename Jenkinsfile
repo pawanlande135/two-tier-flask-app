@@ -1,30 +1,51 @@
-pipeline {
-    agent any
+pipeline{
+    
+    agent{ label "test" }
     
     stages{
-        stage("Code"){
+        stage("clone code"){
             steps{
-                git url: "https://github.com/LondheShubham153/two-tier-flask-app.git", branch: "jenkins"
+               git url: "https://github.com/pawanlande135/two-tier-flask-app.git", branch: "test"
             }
         }
-        stage("Build & Test"){
+        
+        stage("Build"){
             steps{
-                sh "docker build . -t flaskapp"
+               sh "docker build -t flask-app ./ "
             }
         }
-        stage("Push to DockerHub"){
+        
+        stage("Test"){
             steps{
-                withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                    sh "docker tag flaskapp ${env.dockerHubUser}/flaskapp:latest"
-                    sh "docker push ${env.dockerHubUser}/flaskapp:latest" 
-                }
+                echo "Developer test case de denga"
+            }
+        }
+        
+        stage("docker push"){
+            steps{
+                
+                    withCredentials([usernamePassword(
+                    credentialsId: "dockerhubcred",
+                    passwordVariable: "dockerhubpass",
+                    usernameVariable: "dockerhubuserid")])
+                
+            {
+                
+                sh "docker login -u ${env.dockerhubuserid} -p ${env.dockerhubpass}"
+                sh "docker tag flask-app ${env.dockerhubuserid}/two-tier-flask-app:latest"
+                sh "docker push ${env.dockerhubuserid}/two-tier-flask-app:latest"
+            }    
+            
+                
             }
         }
         stage("Deploy"){
             steps{
-                sh "docker-compose down && docker-compose up -d"
+            sh "docker compose up -d --build flask-app"
             }
         }
     }
+    
+    
+    
 }
