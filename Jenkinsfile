@@ -1,32 +1,62 @@
-pipeline {
-    agent any
-    
+pipeline{
+
+    agent {label "dev"};
+
     stages{
-        stage("Code"){
+        stage("code"){
             steps{
-                git url: "https://github.com/LondheShubham153/two-tier-flask-app.git", branch: "jenkins"
+
+                git url: "https://github.com/pawanlande135/two-tier-flask-app.git", branch: "master"              
+             
             }
+
+
         }
-        stage("Build & Test"){
+        stage("Build"){
             steps{
-                sh "docker build . -t flaskapp"
-            }
-        }
-        
-        stage("Push to DockerHub"){
-            steps{
-                withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")])
+               
+
+               sh "docker build -t flask-app-image ./"
+
                 
-                {
-                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                    sh "docker tag flaskapp ${env.dockerHubUser}/flaskapp:latest"
-                    sh "docker push ${env.dockerHubUser}/flaskapp:latest" 
-                }
             }
+
+        }
+        stage("Test"){
+            steps{
+
+                echo "Code has been Tested successfully."
+
+                
+            }
+        }
+
+        stage("Docker hub push"){
+            steps{
+
+                withCredentials([usernamePassword(
+                credentialsId:"dockerhubcreds",
+                passwordVariable:"dockerhubPass",
+                usernameVariable:"dockerhubUser"
+                )]){
+
+                    sh "docker login -u ${env.dockerhubUser} -p ${env.dockerhubPass}"
+                    sh "docker image tag flask-app-image ${env.dockerhubUser}/two-tier-flask-app"
+                    sh "docker push ${env.dockerhubUser}/two-tier-flask-app:latest"
+
+                }
+
+
+            }
+
+
         }
         stage("Deploy"){
             steps{
-                sh "docker-compose down && docker-compose up -d"
+
+                sh "docker compose up -d --build flask-app"
+
+                
             }
         }
     }
