@@ -22,7 +22,7 @@ pipeline{
 		    steps{
 			withCredentials([usernamePassword(
 			credentialsId:"dockerhubcreds",
-			passwordVariable: "dockerhubpass"
+			passwordVariable: "dockerhubpass",
 			usernameVariable:  "dockerhubuser"
 			)]){
 			sh "docker login -u ${env.dockerhubuser} -p ${env.dockerhubpass}"
